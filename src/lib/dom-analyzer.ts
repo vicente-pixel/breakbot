@@ -248,6 +248,9 @@ export async function analyzeResponsiveDesign(
   const page = await browserInstance.newPage();
 
   try {
+    // Disable cache to ensure fresh content is loaded
+    await page.setCacheEnabled(false);
+
     await page.goto(url, {
       waitUntil: 'networkidle2',
       timeout: 30000,

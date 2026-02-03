@@ -95,9 +95,15 @@ export async function bootSimulator(udid: string): Promise<boolean> {
 // Open URL in simulator Safari
 export async function openUrlInSimulator(udid: string, url: string): Promise<boolean> {
   try {
+    // First open clears any Safari dialogs/Start Page overlays
     await execAsync(`xcrun simctl openurl ${udid} "${url}"`);
-    // Wait for page to load
-    await new Promise(resolve => setTimeout(resolve, 3000));
+    // Wait for Safari to process the URL
+    await new Promise(resolve => setTimeout(resolve, 2000));
+
+    // Open again to ensure URL is loaded (handles Start Page overlay case)
+    await execAsync(`xcrun simctl openurl ${udid} "${url}"`);
+    // Wait for page to fully load
+    await new Promise(resolve => setTimeout(resolve, 4000));
     return true;
   } catch (error) {
     console.error('Error opening URL in simulator:', error);
@@ -236,8 +242,8 @@ export async function testOnSimulator(
     };
   }
 
-  // Wait for page to render
-  await new Promise(resolve => setTimeout(resolve, 2000));
+  // Additional wait for page to fully render (CSS, images, fonts, etc.)
+  await new Promise(resolve => setTimeout(resolve, 3000));
 
   // Take screenshot
   const screenshot = await takeSimulatorScreenshot(targetUdid);

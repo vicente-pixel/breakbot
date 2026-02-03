@@ -40,6 +40,9 @@ export async function captureScreenshots(
         deviceScaleFactor: 1,
       });
 
+      // Disable cache to ensure fresh content is loaded
+      await page.setCacheEnabled(false);
+
       await page.goto(url, {
         waitUntil: 'networkidle2',
         timeout: 30000,
