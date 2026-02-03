@@ -1,36 +1,122 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Breakbot
 
-## Getting Started
+MCP server for automated responsive design testing. Detects layout issues across viewports and provides Tailwind CSS fixes.
 
-First, run the development server:
+**No API costs** - uses DOM inspection instead of AI vision.
+
+## Features
+
+- **DOM-Based Analysis**: Detects overflow, touch target, and layout issues by inspecting the DOM (no AI/API cost)
+- **9 Viewport Sizes**: Tests from 320px to 1536px covering all Tailwind breakpoints
+- **iOS Simulator Support**: Test on real iOS Safari via Xcode Simulator (macOS)
+- **Tailwind CSS Fixes**: Provides specific classes to fix detected issues
+
+## Installation
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+git clone https://github.com/yourusername/breakbot.git
+cd breakbot
+npm install
+npm run build
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Usage with Claude Code
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+Create a `.mcp.json` file in your project root:
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```json
+{
+  "mcpServers": {
+    "breakbot": {
+      "command": "node",
+      "args": ["/path/to/breakbot/dist/index.js"]
+    }
+  }
+}
+```
 
-## Learn More
+Replace `/path/to/breakbot` with the actual path where you cloned this repo.
 
-To learn more about Next.js, take a look at the following resources:
+> **Note**: For global installation, you can add this to `~/.claude/claude_desktop_config.json` instead.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+**Other MCP clients** (Claude Desktop, Cursor, etc.) use a similar configuration format.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+Then ask Claude:
+- "Test example.com for responsive issues"
+- "Check my site on iOS Simulator"
+- "Take a screenshot at 375px width"
 
-## Deploy on Vercel
+## MCP Tools
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+### `test_responsive`
+Main testing tool. Analyzes a URL across 9 viewports using DOM inspection.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+```
+Input: { url: "https://example.com" }
+Output: Report with issues found and Tailwind fixes
+```
+
+**Detects:**
+- Horizontal overflow / scrollbars
+- Small touch targets (< 44px)
+- Text truncation
+- Off-screen elements
+
+### `screenshot_viewport`
+Take a screenshot at a specific width.
+
+```
+Input: { url: "https://example.com", width: 375 }
+Output: Screenshot image
+```
+
+### `ios_test`
+Test on iOS Simulator (macOS + Xcode required).
+
+```
+Input: { url: "https://example.com" }
+Output: Screenshot from real iOS Safari
+```
+
+### `ios_list_simulators`
+List available iOS Simulators.
+
+### `ios_boot_simulator`
+Boot a specific simulator by UDID.
+
+### `list_breakpoints`
+Reference for Tailwind breakpoints.
+
+## Viewport Sizes Tested
+
+| Device | Width | Tailwind |
+|--------|-------|----------|
+| iPhone SE | 320px | default |
+| iPhone 8 | 375px | default |
+| iPhone 14 | 390px | default |
+| Mobile Large | 480px | default |
+| sm | 640px | sm: |
+| md | 768px | md: |
+| lg | 1024px | lg: |
+| xl | 1280px | xl: |
+| 2xl | 1536px | 2xl: |
+
+## Issue Types Detected
+
+| Type | Description | Suggested Fix |
+|------|-------------|---------------|
+| horizontal-overflow | Content wider than viewport | `overflow-x-hidden`, `max-w-full` |
+| touch-target | Interactive element < 44px | `min-w-[44px] min-h-[44px]` |
+| text-overflow | Truncated text | `break-words`, `whitespace-normal` |
+| offscreen | Element partially off-screen | Check margins/positioning |
+
+## Tech Stack
+
+- Node.js + TypeScript
+- Puppeteer (headless Chrome)
+- MCP SDK
+- xcrun simctl (iOS Simulator)
+
+## License
+
+MIT
